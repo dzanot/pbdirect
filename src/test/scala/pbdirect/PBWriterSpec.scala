@@ -24,6 +24,7 @@ package pbdirect
 import cats.instances.option._
 import cats.instances.list._
 import org.scalatest.{Matchers, WordSpecLike}
+import shapeless.{:+:, CNil, Coproduct}
 
 class PBWriterSpec extends WordSpecLike with Matchers {
   "PBWriter" should {
@@ -148,6 +149,14 @@ class PBWriterSpec extends WordSpecLike with Matchers {
       implicit val instantWriter: PBWriter[Instant] = PBWriter[Long].contramap(_.toEpochMilli)
       val instant                                   = Instant.ofEpochMilli(1499411227777L)
       Message(instant).toPB shouldBe Array[Byte](8, -127, -55, -2, -34, -47, 43)
+    }
+    "write a Coproduct to Protobuf" in {
+      type BI = Boolean :+: Int :+: CNil
+      case class Message(bi: BI)
+      val boolMessage = Message(Coproduct[BI](true))
+      val intMessage  = Message(Coproduct[BI](2))
+      boolMessage.toPB shouldBe Array[Byte](8, 1)
+      intMessage.toPB shouldBe Array[Byte](10, 2)
     }
   }
 }
