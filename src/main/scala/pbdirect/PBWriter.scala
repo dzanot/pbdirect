@@ -67,7 +67,7 @@ trait LowPriorityPBWriterImplicits {
     instance { (index: Int, value: H :+: T, out: CodedOutputStream) =>
       value match {
         case Inl(h) => head.writeTo(index, h, out)
-        case Inr(t) => tail.writeTo(index, t, out)
+        case Inr(t) => tail.writeTo(index + 1, t, out)
       }
     }
   implicit def coprodWriter[A, R <: Coproduct](

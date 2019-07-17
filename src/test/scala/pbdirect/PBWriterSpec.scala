@@ -96,10 +96,12 @@ class PBWriterSpec extends WordSpecLike with Matchers {
       val message = MultiMessage(Some("Hello"), Some(3))
       message.toPB shouldBe Array[Byte](10, 5, 72, 101, 108, 108, 111, 16, 3)
     }
-    "write a message with missing field to Protobuf" in {
+    "write a message with missing first field to Protobuf" in {
       case class MissingMessage(text: Option[String], number: Option[Int])
-      val message = MissingMessage(Some("Hello"), None)
-      message.toPB shouldBe Array[Byte](10, 5, 72, 101, 108, 108, 111)
+      val messageS = MissingMessage(Some("Hello"), None)
+      messageS.toPB shouldBe Array[Byte](10, 5, 72, 101, 108, 108, 111)
+      val messageI = MissingMessage(None, Some(4))
+      messageI.toPB shouldBe Array[Byte](16, 4)
     }
     "write a message with repeated field to Protobuf" in {
       case class RepeatedMessage(values: List[Int])
@@ -150,13 +152,13 @@ class PBWriterSpec extends WordSpecLike with Matchers {
       val instant                                   = Instant.ofEpochMilli(1499411227777L)
       Message(instant).toPB shouldBe Array[Byte](8, -127, -55, -2, -34, -47, 43)
     }
-    "write a Coproduct to Protobuf" in {
+    "write a coproduct to Protobuf" in {
       type BI = Boolean :+: Int :+: CNil
       case class Message(bi: BI)
-      val boolMessage = Message(Coproduct[BI](true))
-      val intMessage  = Message(Coproduct[BI](2))
-      boolMessage.toPB shouldBe Array[Byte](8, 1)
-      intMessage.toPB shouldBe Array[Byte](10, 2)
+      val messageB = Message(Coproduct[BI](true))
+      val messageI = Message(Coproduct[BI](4))
+      messageB.toPB shouldBe Array[Byte](8, 1)
+      messageI.toPB shouldBe Array[Byte](16, 4)
     }
   }
 }
