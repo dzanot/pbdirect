@@ -22,6 +22,7 @@
 package pbdirect
 
 import org.scalatest.{Matchers, WordSpecLike}
+import shapeless.{:+:, CNil, Coproduct}
 
 class PBReaderSpec extends WordSpecLike with Matchers {
   "PBReader" should {
@@ -121,7 +122,7 @@ class PBReaderSpec extends WordSpecLike with Matchers {
       case class IntMessage(value: Option[Int])       extends Message
       case class StringMessage(value: Option[String]) extends Message
       val intBytes    = Array[Byte](8, 5)
-      val stringBytes = Array[Byte](10, 5, 72, 101, 108, 108, 111)
+      val stringBytes = Array[Byte](18, 5, 72, 101, 108, 108, 111)
       intBytes.pbTo[Message] shouldBe IntMessage(Some(5))
       stringBytes.pbTo[Message] shouldBe StringMessage(Some("Hello"))
     }
@@ -143,6 +144,14 @@ class PBReaderSpec extends WordSpecLike with Matchers {
       case class Message(instant: Instant)
       val instant = Instant.ofEpochMilli(1499411227777L)
       Array[Byte](8, -127, -55, -2, -34, -47, 43).pbTo[Message] shouldBe Message(instant)
+    }
+    "read a coproduct from Protobuf" in {
+      type BI = Boolean :+: Int :+: CNil
+      case class Message(bi: BI)
+      val messageB = Message(Coproduct[BI](true))
+      val messageI = Message(Coproduct[BI](4))
+      Array[Byte](8, 1).pbTo[Message] shouldBe messageB
+      Array[Byte](16, 4).pbTo[Message] shouldBe messageI
     }
   }
 }

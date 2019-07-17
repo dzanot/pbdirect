@@ -138,7 +138,7 @@ trait LowPriorityPBParserImplicits {
     Try {
       Inl(head.parse(index, bytes))
     } getOrElse {
-      Inr(tail.value.parse(index, bytes))
+      Inr(tail.value.parse(index + 1, bytes))
     }
   }
 }
