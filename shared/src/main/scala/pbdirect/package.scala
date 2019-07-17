@@ -4,7 +4,7 @@ import cats.data.{NonEmptyList => NEL}
 import com.google.protobuf.{CodedInputStream, CodedOutputStream}
 
 package object pbdirect {
-  implicit class PBWriterOps[A <: AnyRef](private val a: A) extends AnyVal {
+  implicit class PBWriterOps[A](private val a: A) extends AnyVal {
 
     def toPB(implicit writer: PBWriter[A]): Array[Byte] = {
       val out = new ByteArrayOutputStream()
