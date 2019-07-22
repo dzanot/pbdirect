@@ -122,7 +122,7 @@ class PBReaderSpec extends WordSpecLike with Matchers {
       case class IntMessage(value: Option[Int])       extends Message
       case class StringMessage(value: Option[String]) extends Message
       val intBytes    = Array[Byte](8, 5)
-      val stringBytes = Array[Byte](18, 5, 72, 101, 108, 108, 111)
+      val stringBytes = Array[Byte](10, 5, 72, 101, 108, 108, 111)
       intBytes.pbTo[Message] shouldBe IntMessage(Some(5))
       stringBytes.pbTo[Message] shouldBe StringMessage(Some("Hello"))
     }
