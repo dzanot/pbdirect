@@ -27,44 +27,56 @@ import shapeless.{:+:, CNil}
 import ScalacheckShapeless._
 
 class RoundTripSpec extends Properties("Serialization") {
-  type BIS = Boolean :+: Int :+: String :+: CNil
+  def roundTrip[T: Arbitrary: PBWriter: PBReader](desc: String) = {
+    property(s"$desc round trip") = forAll { o: T =>
+      val bytes = o.toPB
+      val r     = bytes.pbTo[T]
+      ("original = " + o) |:
+        ("round tripped = " + r) |:
+        ("bytes = " + bytes.toList) |: (o == r)
+    }
+  }
+
+  case class IntVal(v: Int)
+  roundTrip[IntVal]("simple int")
+
+  case class StringVal(v: String)
+  roundTrip[StringVal]("simple string")
+
+  case class BooleanVal(v: Boolean)
+  roundTrip[BooleanVal]("simple boolean")
+
+  case class FloatVal(v: Float)
+  roundTrip[FloatVal]("simple float")
+
+  case class IntList(v: List[Int])
+  roundTrip[IntList]("list of ints")
+
+  case class BooleanList(v: List[Boolean])
+  roundTrip[BooleanList]("list of bools")
+
+  case class OptionThing(os: Option[String], i: Option[Int], b: Option[Boolean])
+  roundTrip[OptionThing]("options case class")
+
   case object Enum extends Enumeration {
     val First, Second = Value
   }
-  case class IntVal(i: Int)
-  property("simple int round trip") = forAll { o: IntVal =>
-    val r = o.toPB.pbTo[IntVal]
-    ("original = " + o) |: ("round tripped = " + r) |: (o == r)
-  }
+  case class EnumThing(e: Enum.Value)
+  roundTrip[EnumThing]("java enum")
 
-  case class StringVal(i: String)
-  property("simple string round trip") = forAll { o: StringVal =>
-    val r = o.toPB.pbTo[StringVal]
-    ("original = " + o) |: ("round tripped = " + r) |: (o == r)
-  }
+  sealed trait Pet
+  case class Dog(s: String) extends Pet
+  case class Cat(i: Int)    extends Pet
 
-  case class OptionThing(os: Option[String], i: Option[Int], b: Option[Boolean])
-  property("option round trip") = forAll { o: OptionThing =>
-    val r = o.toPB.pbTo[OptionThing]
-    ("original = " + o) |: ("round tripped = " + r) |: (o == r)
-  }
+  case class SealedThing(p: Pet)
 
-//  sealed trait Pet
-//  case class Dog(s: String)
-//  case class Cat(i: Int)
-//
-//  case class SealedThing(p: Pet)
-//
-//  implicit val catThings = Arbitrary.arbitrary[Dog]
-//  implicit val dogThings = Arbitrary.arbitrary[Cat]
-//
-//  def genPet: Gen[Pet] = Gen.oneOf()
-//
-//  property("sealed trait round trip") = forAll { o: SealedThing =>
-//    val r = o.toPB.pbTo[SealedThing]
-//    ("original = " + o) |: ("round tripped = " + r) |: (o == r)
-//  }
+  implicit val catThings = Arbitrary.arbitrary[Dog]
+  implicit val dogThings = Arbitrary.arbitrary[Cat]
+  implicit val petThings = Arbitrary.arbitrary[Pet]
 
+  roundTrip[SealedThing]("sealed trait")
+
+  type BIS = Boolean :+: Int :+: String :+: CNil
   case class CoproductThing(li: List[IntVal], b: Boolean, s: String, bis: BIS)
   implicit val coproductThings = for {
     ivs <- Arbitrary.arbitrary[List[Int]].map(_.map(IntVal))
@@ -73,10 +85,7 @@ class RoundTripSpec extends Properties("Serialization") {
     bis <- Arbitrary.arbitrary[BIS]
   } yield CoproductThing(ivs, b, s, bis)
 
-  property("coproduct round trip") = forAll { o: CoproductThing =>
-    val r = o.toPB.pbTo[CoproductThing]
-    ("original = " + o) |: ("round tripped = " + r) |: (o == r)
-  }
+  roundTrip[CoproductThing]("coproduct")
 
   case class Outer(f: Float, msi: Map[String, Int], i: Int, inner: CoproductThing)
   implicit val outers = for {
@@ -86,8 +95,5 @@ class RoundTripSpec extends Properties("Serialization") {
     inner <- coproductThings
   } yield Outer(f, msi, i, inner)
 
-  property("complex round trip") = forAll { o: Outer =>
-    val r = o.toPB.pbTo[Outer]
-    ("original = " + o) |: ("round tripped = " + r) |: (o == r)
-  }
+  roundTrip[Outer]("complex nested")
 }
