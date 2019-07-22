@@ -22,6 +22,7 @@ object ProjectPlugin extends AutoPlugin {
       val protobuf: String  = "3.6.1"
       val scala211: String  = "2.11.12"
       val scala212: String  = "2.12.8"
+      val scalaCheck: String = "1.14.0"
       val scalaTest: String = "3.0.6"
       val shapeless: String = "2.3.3"
     }
@@ -60,7 +61,9 @@ object ProjectPlugin extends AutoPlugin {
         "com.chuusai"         %% "shapeless"    % V.shapeless,
         "org.typelevel"       %% "cats-core"    % V.cats,
         "com.google.protobuf" % "protobuf-java" % V.protobuf,
-        "org.scalatest"       %% "scalatest"    % V.scalaTest % Test
+        "org.scalatest"       %% "scalatest"    % V.scalaTest % Test,
+        "org.scalacheck"      %% "scalacheck"   % V.scalaCheck % Test,
+        "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.3" % Test
       ),
       orgScriptTaskListSetting := List(
         (clean in Global).asRunnableItemFull,
