@@ -21,19 +21,23 @@
 
 package pbdirect
 
-import org.scalacheck.{Arbitrary, Gen, Properties, ScalacheckShapeless}
+import org.scalacheck.{Arbitrary, Properties, ScalacheckShapeless}
 import org.scalacheck.Prop.{forAll, BooleanOperators}
 import shapeless.{:+:, CNil}
 import ScalacheckShapeless._
 
 class RoundTripSpec extends Properties("Serialization") {
+  def hex(b: List[Byte]) =
+    b.map(_.toHexString.reverse.padTo(2, '0').reverse).mkString("").grouped(2).toList.mkString("-")
+
   def roundTrip[T: Arbitrary: PBWriter: PBReader](desc: String) = {
     property(s"$desc round trip") = forAll { o: T =>
       val bytes = o.toPB
       val r     = bytes.pbTo[T]
       ("original = " + o) |:
         ("round tripped = " + r) |:
-        ("bytes = " + bytes.toList) |: (o == r)
+        ("bytes = " + bytes.toList) |:
+        ("hex = " + hex(bytes.toList)) |: (o == r)
     }
   }
 
