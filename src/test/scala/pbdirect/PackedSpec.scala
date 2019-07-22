@@ -21,6 +21,7 @@
 
 package pbdirect
 
+import cats.implicits._
 import org.scalatest.{Matchers, WordSpec}
 
 class PackedSpec extends WordSpec with Matchers {

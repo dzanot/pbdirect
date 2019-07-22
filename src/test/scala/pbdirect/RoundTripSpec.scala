@@ -21,6 +21,7 @@
 
 package pbdirect
 
+import cats.implicits._
 import org.scalacheck.{Arbitrary, Properties, ScalacheckShapeless}
 import org.scalacheck.Prop.{forAll, BooleanOperators}
 import shapeless.{:+:, CNil}
@@ -68,6 +69,13 @@ class RoundTripSpec extends Properties("Serialization") {
   case class EnumThing(e: Enum.Value)
   roundTrip[EnumThing]("java enum")
 
+  case class IntVals(v: List[IntVal])
+  implicit val intVals = Arbitrary.arbitrary[List[Int]].map(is => IntVals(is.map(IntVal)))
+  roundTrip[IntVals]("list of case class")
+
+  case class MapThing(msi: Map[String, Int])
+  roundTrip[MapThing]("map")
+
   sealed trait Pet
   case class Dog(s: String) extends Pet
   case class Cat(i: Int)    extends Pet
@@ -81,13 +89,8 @@ class RoundTripSpec extends Properties("Serialization") {
   roundTrip[SealedThing]("sealed trait")
 
   type BIS = Boolean :+: Int :+: String :+: CNil
-  case class CoproductThing(li: List[IntVal], b: Boolean, s: String, bis: BIS)
-  implicit val coproductThings = for {
-    ivs <- Arbitrary.arbitrary[List[Int]].map(_.map(IntVal))
-    b   <- Arbitrary.arbitrary[Boolean]
-    s   <- Arbitrary.arbitrary[String]
-    bis <- Arbitrary.arbitrary[BIS]
-  } yield CoproductThing(ivs, b, s, bis)
+  case class CoproductThing(bis: BIS)
+  implicit val coproductThings = Arbitrary.arbitrary[BIS].map(CoproductThing)
 
   roundTrip[CoproductThing]("coproduct")
 
